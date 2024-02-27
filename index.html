@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <title>Map Display</title>
+  <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+  <script src='https://api.mapbox.com/mapbox-gl-js/v3.2.0-beta.1/mapbox-gl.js'></script>
+  <link href='https://api.mapbox.com/mapbox-gl-js/v3.2.0-beta.1/mapbox-gl.css' rel='stylesheet' />
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+    }
+
+    #map {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 100%;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="map"></div>
+  <script>
+    mapboxgl.accessToken = 'pk.eyJ1IjoiaHVtYW5mb3Jlc3QiLCJhIjoiY2x0M3luajdxMXJxZTJ4cXlyNHdhOTNsdiJ9.mIUvaafWMBDSmyxGJaPp6Q';
+    const map = new mapboxgl.Map({
+      container: 'map',
+      style: 'mapbox://styles/mapbox/standard',
+      center: [-0.127758, 51.507351], // starting position
+      zoom: 14 // starting zoom
+    });
+
+    map.on('style.load', () => {
+      map.setConfigProperty('basemap', 'lightPreset', 'day');
+    });
+
+    map.on('load', function () {
+      const geojsonPaths = [
+        'BA/geojson/GB-default.geojson',
+        'IA/geojson/GB-CMD.geojson',
+        'IA/geojson/GB-default.geojson',
+        'NPA/geojson/GB-CMD.geojson',
+        'NPA/geojson/GB-KEC.geojson',
+        'NPA/geojson/GB-LBH.geojson',
+        'NPA/geojson/GB-OOF.geojson',
+        'NPA/geojson/GB-WSM.geojson',
+        'NPA/geojson/GB-base.geojson',
+        'NPA/geojson/GB-default.geojson'
+      ];
+
+      const geojsonFiles = [
+        { path: 'IA/geojson/GB-CMD.geojson', name: 'IA-GB-CMD', fillColor: '#3b82f6', fillOpacity: 0.5, lineColor: '#1d4ed8', lineWidth: 2 },
+        { path: 'IA/geojson/GB-default.geojson', name: 'IA-GB-default', fillColor: '#10b981', fillOpacity: 0.5, lineColor: '#047857', lineWidth: 2 },
+        { path: 'NPA/geojson/GB-CMD.geojson', name: 'NPA-GB-CMD', fillColor: '#d946ef', fillOpacity: 0.3, lineColor: '#c026d3', lineWidth: 2 },
+        { path: 'NPA/geojson/GB-KEC.geojson', name: 'NPA-GB-KEC', fillColor: '#84cc16', fillOpacity: 0.3, lineColor: '#65a30d', lineWidth: 2 },
+        { path: 'NPA/geojson/GB-LBH.geojson', name: 'NPA-GB-LBH', fillColor: '#3b82f6', fillOpacity: 0.3, lineColor: '#2563eb', lineWidth: 2 },
+        { path: 'NPA/geojson/GB-WSM.geojson', name: 'NPA-GB-WSM', fillColor: '#eab308', fillOpacity: 0.3, lineColor: '#ca8a04', lineWidth: 2 },
+        { path: 'NPA/geojson/GB-OOF.geojson', name: 'NPA-GB-OOF', fillColor: '#ef4444', fillOpacity: 0.3, lineColor: '#888', lineWidth: 2 },
+        { path: 'NPA/geojson/GB-default.geojson', name: 'NPA-GB-default', fillColor: '#64748b', fillOpacity: 0.3, lineColor: '#888', lineWidth: 2 },
+        { path: 'BA/geojson/GB-default.geojson', name: 'BA-GB-default', fillColor: 'black', fillOpacity: 0, lineColor: 'black', lineWidth: 5 },
+      ]
+
+      geojsonFiles.forEach(function (file, index) {
+        const url = `./${file.path}`;
+
+        map.addSource(`geojsonSource-${index}`, {
+          type: 'geojson',
+          data: url
+        });
+
+        map.addLayer({
+          'id': `geojsonLayer-${index}`,
+          'type': 'line',
+          slot: 'middle',
+          'source': `geojsonSource-${index}`,
+          'layout': {},
+          'paint': {
+            'line-color': file.lineColor,
+            'line-width': file.lineWidth,
+          },
+        });
+
+        map.addLayer({
+          'id': `geojsonLayerFill-${index}`,
+          'type': 'fill',
+          slot: 'middle',
+          'source': `geojsonSource-${index}`,
+          'layout': {},
+          'paint': {
+            'fill-color': file.fillColor,
+            'fill-opacity': file.fillOpacity
+          }
+        });
+      });
+
+      const parkingMarker = 'data:image/png;base64,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'
+
+
+      map.addSource('parking_points', {
+        type: 'geojson',
+        data: './parking_points.geojson'
+      });
+
+      map.loadImage(parkingMarker, function (error, image) {
+        if (error) {
+          console.error('Error loading parking marker image:', error);
+          return;
+        }
+
+        map.addImage('parking-marker', image);
+
+        map.addLayer({
+          'id': 'parking_points',
+          'type': 'symbol',
+          'source': 'parking_points',
+          'layout': {
+            'icon-image': 'parking-marker',
+            'icon-size': 0.15,
+            'icon-anchor': 'bottom',
+            'icon-allow-overlap': true
+          }
+        });
+      });
+
+    });
+  </script>
+</body>
+
+</html>
